@@ -1,13 +1,19 @@
+# run_all.py
+
 import subprocess
 
-print("🚀 Fetching crypto data...")
-subprocess.run(["python", "scripts/fetch_data.py"])
+print("🚀 شروع اجرای ایجنت تحلیل بازار کریپتو...")
 
-print("🧠 Training ML model...")
-subprocess.run(["python", "scripts/train_model.py"])
+# اجرای مرحله 1: دریافت داده‌ها
+print("\n📥 در حال دریافت داده‌ها از بازار...")
+subprocess.run(["python", "scripts data/fetch_data.py"], check=True)
 
-print("🔍 Predicting growing coins...")
-subprocess.run(["python", "scripts/predict.py"])
+# اجرای مرحله 2: آموزش و پیش‌بینی با مدل RandomForest
+print("\n🤖 در حال آموزش مدل و پیش‌بینی...")
+subprocess.run(["python", "scripts data/train_model.py"], check=True)
 
-print("📤 Sending predictions to Telegram...")
-subprocess.run(["python", "scripts/send_to_telegram.py"])
+# اجرای مرحله 3: ارسال نتیجه به تلگرام
+print("\n📤 ارسال نتایج به تلگرام...")
+subprocess.run(["python", "scripts data/send_to_telegram.py"], check=True)
+
+print("\n✅ همه مراحل با موفقیت انجام شد.")
