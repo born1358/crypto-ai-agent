@@ -12,6 +12,9 @@ df = pd.read_csv('data/top_coins.csv')
 df = df[['id', 'symbol', 'name', 'current_price', 'price_change_percentage_24h', 'market_cap', 'total_volume']]
 df = df.dropna()  # حذف داده‌های خالی
 
+# حذف داده‌های با مقدار بی‌نهایت (infinity)
+df = df.replace([float('inf'), -float('inf')], float('nan')).dropna()
+
 # اضافه کردن ویژگی جدید
 df['price_to_volume'] = df['current_price'] / df['total_volume']
 df['price_to_market_cap'] = df['current_price'] / df['market_cap']
