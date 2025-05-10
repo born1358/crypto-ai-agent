@@ -4,6 +4,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import accuracy_score
 import joblib
+import numpy as np
 
 # بارگذاری داده‌ها
 df = pd.read_csv('data/top_coins.csv')
@@ -13,7 +14,11 @@ df = df[['id', 'symbol', 'name', 'current_price', 'price_change_percentage_24h',
 df = df.dropna()  # حذف داده‌های خالی
 
 # حذف داده‌های با مقدار بی‌نهایت (infinity)
-df = df.replace([float('inf'), -float('inf')], float('nan')).dropna()
+df = df.replace([float('inf'), -float('inf')], np.nan).dropna()
+
+# جایگزینی مقادیر بیش از حد بزرگ به NaN
+max_value = 1e12  # عدد بزرگترین حد
+df = df.applymap(lambda x: np.nan if isinstance(x, (int, float)) and abs(x) > max_value else x)
 
 # اضافه کردن ویژگی جدید
 df['price_to_volume'] = df['current_price'] / df['total_volume']
