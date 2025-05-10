@@ -11,6 +11,10 @@ df = pd.read_csv("data/top_coins.csv")
 # حذف مقادیر گمشده
 df = df.dropna(subset=['market_cap', 'current_price', 'total_volume', 'price_change_percentage_24h'])
 
+# فیلتر: حذف استیبل کوین‌ها و کوین‌هایی که تغییرات کمتر از 1% دارند
+growing_coins = df[(df['prediction'] == 1) & (df['price_change_percentage_24h'].abs() > 1)]
+
+
 # آماده‌سازی ورودی
 df['price_change_24h'] = df['price_change_percentage_24h']
 df['target'] = df['price_change_24h'].apply(lambda x: 1 if x > 0 else 0)
