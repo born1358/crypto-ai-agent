@@ -1,7 +1,8 @@
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import StandardScaler
-import joblib  # برای ذخیره مدل
+import joblib
+import os  # برای بررسی وجود پوشه
 
 # لود داده جدید
 df = pd.read_csv("data/top_coins.csv")
@@ -24,6 +25,9 @@ X_scaled = scaler.fit_transform(X)
 # آموزش مدل با Random Forest
 model = RandomForestClassifier(n_estimators=100, random_state=42)
 model.fit(X_scaled, y)
+
+# بررسی و ایجاد پوشه برای ذخیره مدل
+os.makedirs('model', exist_ok=True)
 
 # ذخیره مدل برای استفاده در آینده
 joblib.dump(model, 'model/random_forest_model.pkl')
