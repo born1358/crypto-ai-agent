@@ -1,35 +1,30 @@
 import pandas as pd
-from sklearn.linear_model import LogisticRegression
-from sklearn.preprocessing import StandardScaler
+import joblib
 
-# لود داده جدید
-df = pd.read_csv("data/top_coins.csv")
+# بارگذاری مدل
+model = joblib.load('model/random_forest_model.pkl')
 
-# آماده‌سازی ورودی
-df['price_change_24h'] = df['price_change_percentage_24h']
-df['target'] = df['price_change_24h'].apply(lambda x: 1 if x > 0 else 0)
+# بارگذاری داده‌ها
+df = pd.read_csv('data/top_coins.csv')
 
-X = df[['market_cap', 'current_price', 'total_volume']]
-y = df['target']  # واقعی (فعلاً برای تست دقت)
+# پیش‌پردازش داده‌ها
+df = df[['id', 'symbol', 'name', 'current_price', 'price_change_percentage_24h', 'market_cap', 'total_volume']]
+df = df.dropna()
 
-# آموزش مدل روی همین داده‌ها (به‌جای لود مدل ذخیره‌شده، برای سادگی فعلاً باز آموزش می‌دیم)
-scaler = StandardScaler()
-X_scaled = scaler.fit_transform(X)
+# اضافه کردن ویژگی جدید
+df['price_to_volume'] = df['current_price'] / df['total_volume']
+df['price_to_market_cap'] = df['current_price'] / df['market_cap']
 
-model = LogisticRegression()
-model.fit(X_scaled, y)
+# انتخاب ویژگی‌ها
+X = df[['current_price', 'market_cap', 'total_volume', 'price_to_volume', 'price_to_market_cap']]
 
 # پیش‌بینی
-predictions = model.predict(X_scaled)
+predictions = model.predict(X)
 df['prediction'] = predictions
 
-# فیلتر: فقط کوین‌هایی که مدل رشد براشون پیش‌بینی کرده
+# فیلتر کردن کوین‌هایی که پیش‌بینی رشد دارند
 growing_coins = df[df['prediction'] == 1][['name', 'symbol', 'current_price', 'price_change_percentage_24h']]
 
-# نمایش
-print("🔮 Coins predicted to grow:")
-print(growing_coins)
-
-# ذخیره خروجی
-growing_coins.to_csv("data/growing_coins.csv", index=False)
+# ذخیره پیش‌بینی‌ها
+growing_coins.to_csv('data/growing_coins.csv', index=False)
 print("✅ Predictions saved to data/growing_coins.csv")

@@ -1,40 +1,43 @@
 import pandas as pd
-from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import accuracy_score
 import joblib
 
-# لود داده جدید
-df = pd.read_csv("data/top_coins.csv")
+# بارگذاری داده‌ها
+df = pd.read_csv('data/top_coins.csv')
 
-# آماده‌سازی ورودی
-df['price_change_24h'] = df['price_change_percentage_24h']
-df['target'] = df['price_change_24h'].apply(lambda x: 1 if x > 0 else 0)
+# فیلتر کردن داده‌های معتبر
+df = df[['id', 'symbol', 'name', 'current_price', 'price_change_percentage_24h', 'market_cap', 'total_volume']]
+df = df.dropna()  # حذف داده‌های خالی
 
-X = df[['market_cap', 'current_price', 'total_volume']]
-y = df['target']  # واقعی (فعلاً برای تست دقت)
+# اضافه کردن ویژگی جدید
+df['price_to_volume'] = df['current_price'] / df['total_volume']
+df['price_to_market_cap'] = df['current_price'] / df['market_cap']
 
-# آموزش مدل روی همین داده‌ها (به‌جای لود مدل ذخیره‌شده، برای سادگی فعلاً باز آموزش می‌دیم)
+# ایجاد برچسب رشد یا کاهش قیمت (1 برای رشد و 0 برای کاهش)
+df['target'] = df['price_change_percentage_24h'].apply(lambda x: 1 if x > 0 else 0)
+
+# انتخاب ویژگی‌ها و هدف
+X = df[['current_price', 'market_cap', 'total_volume', 'price_to_volume', 'price_to_market_cap']]
+y = df['target']
+
+# مقیاس‌بندی ویژگی‌ها
 scaler = StandardScaler()
 X_scaled = scaler.fit_transform(X)
 
-model = LogisticRegression()
-model.fit(X_scaled, y)
+# تقسیم داده‌ها به مجموعه آموزش و آزمون
+X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=42)
+
+# آموزش مدل
+model = RandomForestClassifier(n_estimators=100, random_state=42)
+model.fit(X_train, y_train)
 
 # پیش‌بینی
-predictions = model.predict(X_scaled)
-df['prediction'] = predictions
+y_pred = model.predict(X_test)
+print(f"Accuracy: {accuracy_score(y_test, y_pred):.2f}")
 
-# فیلتر: حذف استیبل کوین‌ها و کوین‌هایی که تغییرات کمتر از 1% دارند
-growing_coins = df[(df['prediction'] == 1) & (df['price_change_percentage_24h'].abs() > 1)]
-
-# نمایش
-print("🔮 Coins predicted to grow:")
-print(growing_coins)
-
-# ذخیره خروجی
-growing_coins.to_csv("data/growing_coins.csv", index=False)
-print("✅ Predictions saved to data/growing_coins.csv")
-
-# ذخیره مدل برای استفاده‌های بعدی
+# ذخیره مدل
 joblib.dump(model, 'model/random_forest_model.pkl')
 print("✅ Model saved to model/random_forest_model.pkl")
