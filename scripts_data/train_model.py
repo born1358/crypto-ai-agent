@@ -9,10 +9,14 @@ df = df[['id', 'symbol', 'name', 'current_price', 'price_change_percentage_24h',
 df = df.dropna()  # حذف داده‌های خالی
 
 # تبدیل مقادیر به عددی (در صورت وجود مقادیر متنی)
+# اینجا بررسی می‌کنیم که آیا مقدار `current_price`، `price_change_percentage_24h`، `market_cap` و `total_volume` عددی است یا نه
 df['current_price'] = pd.to_numeric(df['current_price'], errors='coerce')
 df['price_change_percentage_24h'] = pd.to_numeric(df['price_change_percentage_24h'], errors='coerce')
 df['market_cap'] = pd.to_numeric(df['market_cap'], errors='coerce')
 df['total_volume'] = pd.to_numeric(df['total_volume'], errors='coerce')
+
+# حذف سکه‌هایی که ممکن است مقادیر غیرمعمول داشته باشند، مثل USDT یا USDC
+df = df[~df['symbol'].isin(['USDT', 'USDC'])]  # حذف سکه‌های USDT و USDC
 
 # حذف ستون‌هایی که به اشتباه به صورت متنی تبدیل شده‌اند
 df = df.apply(pd.to_numeric, errors='coerce')
